@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>重走精神长征路 · 书写时代新篇章</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #3d0f0f 0%, #1f0505 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .app {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      max-width: 1300px;
+      max-height: 900px;
+      background: radial-gradient(circle at 30% 20%, #5a1e1e 0%, #2b0a0a 70%, #150303 100%);
+      border-radius: 32px;
+      box-shadow: 0 30px 40px rgba(0, 0, 0, 0.8), inset 0 1px 4px rgba(255, 150, 150, 0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s;
+    }
+
+    @media (max-width: 900px) and (orientation: landscape) {
+      .app {
+        max-width: 100vw;
+        max-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+
+    .page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 2rem 3rem;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      /* 优化了页面切换过渡效果 */
+      transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), visibility 0.4s;
+      background-color: transparent;
+      color: #f2e6d8;
+      scrollbar-width: thin;
+      scrollbar-color: #b83a3a #2e1a14;
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+    }
+
+    .page:not(.hidden) {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .page::-webkit-scrollbar { width: 8px; }
+    .page::-webkit-scrollbar-track { background: #2e1a14; }
+    .page::-webkit-scrollbar-thumb { background: #b83a3a; border-radius: 8px; }
+
+    /* ================= 欢迎页面 ================= */
+    #welcome-page {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: radial-gradient(circle at 40% 30%, rgba(200, 70, 70, 0.35) 0%, rgba(60, 10, 10, 0.9) 80%);
+    }
+
+    .welcome-title {
+      font-size: clamp(2.2rem, 8vw, 4rem);
+      font-weight: 800;
+      letter-spacing: 4px;
+      margin-bottom: 1.5rem;
+      color: #ffd9b3;
+      text-shadow: 0 0 15px #d47a4a, 0 0 30px #a33a1a, 0 0 45px #661d0b;
+      line-height: 1.3;
+    }
+
+    .welcome-text {
+      font-size: clamp(1rem, 2.8vw, 1.4rem);
+      max-width: 80%;
+      margin-bottom: 3rem;
+      color: #fbe9dc;
+      line-height: 1.7;
+      background: rgba(70, 20, 20, 0.7);
+      padding: 1.2rem 2rem;
+      border-radius: 60px;
+      backdrop-filter: blur(3px);
+      border: 1px solid #b85a5a;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(180, 60, 40, 0.3);
+    }
+
+    /* ================= 按钮通用点击效果 ================= */
+    .btn-close, .btn-next {
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 悬浮时的光晕 */
+    .btn-close:hover, .btn-next:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px rgba(255, 150, 100, 0.6), 0 12px 25px rgba(0, 0, 0, 0.5);
+      filter: brightness(1.1);
+    }
+
+    /* 按下时的缩放反馈 */
+    .btn-close:active, .btn-next:active {
+      transform: translateY(2px) scale(0.95) !important;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5) !important;
+      transition: all 0.05s;
+    }
+
+    .btn-close {
+      background: #b83a3a;
+      border: none;
+      color: #fff6e7;
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      padding: 0.8rem 3.5rem;
+      border-radius: 60px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      box-shadow: 0 10px 0 #6b1e1e, 0 12px 25px rgba(0, 0, 0, 0.5);
+      border: 1px solid #e7b78b;
+    }
+
+    /* ================= 时间轴页 ================= */
+    #timeline-page { justify-content: flex-start; }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .timeline-header h2 {
+      font-size: clamp(1.6rem, 4vw, 2.5rem);
+      color: #ffd8b0;
+      text-shadow: 0 2px 10px #a34e1e;
+      letter-spacing: 2px;
+      border-left: 6px solid #b83a3a;
+      padding-left: 1rem;
+    }
+
+    .timeline-scroll {
+      flex: 1;
+      overflow-x: auto;
+      overflow-y: hidden;
+      display: flex;
+      align-items: center;
+      padding: 1rem 0.5rem 2rem 0.5rem;
+      min-height: 280px;
+      scrollbar-width: thin;
+      scrollbar-color: #b83a3a #1f0f0a;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .timeline-scroll::-webkit-scrollbar { height: 8px; }
+    .timeline-scroll::-webkit-scrollbar-track { background: #1f0f0a; border-radius: 8px; }
+    .timeline-scroll::-webkit-scrollbar-thumb { background: #b83a3a; border-radius: 8px; }
+
+    .timeline-track {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      padding: 0 1rem;
+      min-width: min-content;
+    }
+
+    /* 为时间轴节点添加点击过渡 */
+    .timeline-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      width: 140px;
+      user-select: none;
+      position: relative;
+    }
+
+    .timeline-item:hover { transform: translateY(-6px) scale(1.05); }
+    .timeline-item:active { transform: translateY(0) scale(0.95); }
+
+    .node {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #3f2418;
+      border: 4px solid #b83a3a;
+      box-shadow: 0 0 0 4px #2e1a14, 0 8px 12px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #ffd8b0;
+      transition: all 0.3s;
+      margin-bottom: 12px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .timeline-item.active .node {
+      background: #b83a3a;
+      color: #fff6e7;
+      border-color: #ffbb77;
+      box-shadow: 0 0 0 6px rgba(255, 100, 100, 0.4), 0 10px 20px black, 0 0 20px #ffbb77;
+      transform: scale(1.15);
+    }
+
+    .item-label {
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+      color: #e8cfb5;
+      background: rgba(60, 20, 20, 0.8);
+      padding: 0.2rem 0.8rem;
+      border-radius: 30px;
+      border: 1px solid #b85a5a;
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+
+    .timeline-item.active .item-label {
+      background: #b83a3a;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(255, 100, 100, 0.5);
+    }
+
+    .timeline-item:not(:last-child) .node::after {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: 64px;
+      width: 2rem;
+      height: 4px;
+      background: linear-gradient(90deg, #b83a3a, #7a2e1e);
+      border-radius: 4px;
+      z-index: 0;
+    }
+
+    .detail-panel {
+      background: rgba(50, 15, 15, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid #b85a5a;
+      border-radius: 28px;
+      padding: 1.5rem 2rem;
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: row;
+      gap: 2rem;
+      align-items: center;
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.7), inset 0 1px 6px rgba(200, 100, 80, 0.2);
+      min-height: 150px;
+      transition: all 0.3s;
+    }
+
+    .detail-image {
+      width: 120px;
+      height: 120px;
+      border-radius: 24px;
+      background: #4e2c1c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #d49b6a;
+      border: 2px dashed #b85a5a;
+      flex-shrink: 0;
+      background-image: repeating-linear-gradient(45deg, rgba(180, 100, 70, 0.2) 0px, rgba(180, 100, 70, 0.2) 10px, rgba(90, 40, 30, 0.2) 10px, rgba(90, 40, 30, 0.2) 20px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+    .detail-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 24px;
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .detail-content h3 {
+      font-size: 1.7rem;
+      color: #ffc28b;
+      margin-bottom: 0.5rem;
+      letter-spacing: 1px;
+    }
+
+    .detail-content p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: #e3cdb8;
+    }
+
+    .next-btn-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    .btn-next {
+      background: #b83a3a;
+      border: none;
+      color: #fff6e7;
+      font-size: 1.4rem;
+      padding: 0.7rem 2.8rem;
+      border-radius: 50px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      box-shadow: 0 8px 0 #6b1e1e, 0 12px 25px rgba(0, 0, 0, 0.4);
+      border: 1px solid #e7b78b;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ================= 第三页 / 第四页 ================= */
+    #third-page,
+    #fourth-page {
+      justify-content: flex-start;
+      background: radial-gradient(circle at 70% 30%, rgba(150, 50, 50, 0.35) 0%, rgba(40, 8, 8, 0.95) 90%);
+      padding: 2rem 3rem;
+    }
+
+    .hero-section {
+      display: flex;
+      flex-direction: row;
+      gap: 2.5rem;
+      align-items: flex-start;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      flex-shrink: 0;
+      align-self: center;
+      min-width: 200px;
+    }
+
+    .hero-left-subtitle {
+      font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+      font-weight: 700;
+      color: #ffd8b0;
+      letter-spacing: 2px;
+      text-shadow: 0 0 12px #b83a3a, 0 0 24px #6b1e1e;
+      border-left: 5px solid #b83a3a;
+      padding-left: 0.8rem;
+      margin-bottom: 0.2rem;
+      line-height: 1.4;
+    }
+
+    .hero-images {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .hero-img-card {
+      width: 170px;
+      height: 160px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 3px solid #b85a5a;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(200, 100, 80, 0.3);
+      background: #3f2418;
+      flex-shrink: 0;
+      transition: transform 0.3s;
+    }
+
+    .hero-img-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(255, 100, 80, 0.4);
+    }
+
+    .hero-img-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .hero-img-card .img-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      color: #d49b6a;
+      text-align: center;
+      padding: 0.5rem;
+      background-image: repeating-linear-gradient(45deg, rgba(180, 100, 70, 0.2) 0px, rgba(180, 100, 70, 0.2) 10px, rgba(90, 40, 30, 0.2) 10px, rgba(90, 40, 30, 0.2) 20px);
+    }
+
+    .hero-phone-shot {
+      width: 200px;
+      aspect-ratio: 1080 / 2400;
+      height: auto;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 3px solid #b85a5a;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(200, 100, 80, 0.3);
+      background: #3f2418;
+      flex-shrink: 0;
+      position: relative;
+      transition: transform 0.3s;
+    }
+
+    .hero-phone-shot:hover {
+      transform: scale(1.03);
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 100, 80, 0.4);
+    }
+
+    .hero-phone-shot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .hero-phone-shot .img-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      color: #d49b6a;
+      text-align: center;
+      padding: 0.8rem;
+      line-height: 1.5;
+      background-image: repeating-linear-gradient(45deg, rgba(180, 100, 70, 0.2) 0px, rgba(180, 100, 70, 0.2) 10px, rgba(90, 40, 30, 0.2) 10px, rgba(90, 40, 30, 0.2) 20px);
+    }
+
+    .hero-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      overflow-y: auto;
+      padding-right: 1rem;
+      scrollbar-width: thin;
+      scrollbar-color: #b83a3a #2e1a14;
+      align-self: stretch;
+    }
+
+    .hero-content::-webkit-scrollbar { width: 6px; }
+    .hero-content::-webkit-scrollbar-track { background: #2e1a14; border-radius: 6px; }
+    .hero-content::-webkit-scrollbar-thumb { background: #b83a3a; border-radius: 6px; }
+
+    .hero-name {
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      color: #ffd8b0;
+      text-shadow: 0 0 15px #b83a3a, 0 0 30px #6b1e1e;
+      letter-spacing: 3px;
+      border-left: 6px solid #b83a3a;
+      padding-left: 1rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .hero-sub {
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      color: #d49b6a;
+      letter-spacing: 2px;
+      padding-left: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-body {
+      font-size: clamp(0.95rem, 1.8vw, 1.05rem);
+      color: #f0e0d0;
+      line-height: 1.9;
+      text-align: justify;
+      padding: 0 0.3rem;
+    }
+
+    .hero-body p {
+      margin-bottom: 0.9rem;
+      text-indent: 2em;
+    }
+
+    .demo-hint {
+      font-size: 0.85rem;
+      color: #b89377;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    .page-next-btn-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* ================= 第五页 ================= */
+    #fifth-page {
+      justify-content: flex-start;
+      background: radial-gradient(circle at 60% 30%, rgba(150, 50, 50, 0.35) 0%, rgba(40, 8, 8, 0.95) 90%);
+      padding: 2rem 3rem;
+    }
+
+    .fifth-title {
+      text-align: center;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      color: #ffd8b0;
+      letter-spacing: 4px;
+      text-shadow: 0 0 15px #b83a3a, 0 0 30px #6b1e1e, 0 0 50px #3a0e0e;
+      border-bottom: 4px solid #b83a3a;
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .fifth-body {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 1rem;
+      scrollbar-width: thin;
+      scrollbar-color: #b83a3a #2e1a14;
+      font-size: clamp(1rem, 1.9vw, 1.1rem);
+      color: #f0e0d0;
+      line-height: 2;
+      text-align: justify;
+    }
+
+    .fifth-body::-webkit-scrollbar { width: 6px; }
+    .fifth-body::-webkit-scrollbar-track { background: #2e1a14; border-radius: 6px; }
+    .fifth-body::-webkit-scrollbar-thumb { background: #b83a3a; border-radius: 6px; }
+
+    .fifth-body p {
+      margin-bottom: 1rem;
+      text-indent: 2em;
+    }
+
+    /* 移动端横屏适配 */
+    @media (max-width: 900px) and (orientation: landscape) {
+      #third-page, #fourth-page, #fifth-page { padding: 1.5rem 1.8rem; }
+      .hero-section { gap: 1.5rem; }
+      .hero-left { min-width: 160px; }
+      .hero-img-card { width: 140px; height: 130px; }
+      .hero-body { font-size: 0.88rem; line-height: 1.7; }
+      .hero-name { font-size: 1.6rem; }
+      .hero-left-subtitle { font-size: 1rem; }
+      .hero-phone-shot { width: 160px; }
+      .fifth-title { font-size: 1.8rem; }
+      .fifth-body { font-size: 0.9rem; line-height: 1.8; }
+    }
+
+    @media (max-width: 700px) {
+      .page { padding: 1.5rem 1.2rem; }
+      .detail-panel {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.2rem;
+      }
+      .detail-image { width: 100%; height: 100px; }
+      .timeline-item { width: 110px; }
+      .node { width: 52px; height: 52px; font-size: 1.2rem; }
+      .timeline-item:not(:last-child) .node::after {
+        width: 2rem; left: 52px; top: 24px;
+      }
+      .hero-section { flex-direction: column; gap: 1rem; }
+      .hero-left { align-self: flex-start; min-width: auto; }
+      .hero-images { flex-direction: row; flex-wrap: wrap; }
+      .hero-img-card { width: 120px; height: 120px; }
+      .hero-phone-shot { width: 140px; }
+      .hero-content { width: 100%; overflow-y: visible; }
+      .fifth-title { font-size: 1.6rem; }
+      .fifth-body { font-size: 0.9rem; line-height: 1.8; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- 欢迎页 -->
+    <div id="welcome-page" class="page">
+      <div class="welcome-title">重走精神长征路<br>书写时代新篇章</div>
+      <div class="welcome-text">
+        九十年前，红军三大主力在会宁会师，标志着那场跨越十余省、翻越二十余座雪山的伟大远征胜利结束。九十年后的今天，当我们以“重走”的姿态回望这段历史，并非要复刻草地的泥泞或雪山的严寒，而是要追问：在不再需要以血肉之躯丈量信仰的年代，中国青年的“长征”究竟意味着什么？
+      </div>
+      <button class="btn-close" id="closeWelcomeBtn">开始征程</button>
+    </div>
+
+    <!-- 时间轴页 -->
+    <div id="timeline-page" class="page hidden">
+      <div class="timeline-header">
+        <h2>长征关键点 · 精神足迹</h2>
+        <span class="demo-hint">点击圆形节点查看详情</span>
+      </div>
+
+      <div class="timeline-scroll">
+        <div class="timeline-track" id="timelineTrack">
+          <div class="timeline-item" data-index="0">
+            <div class="node">1</div>
+            <div class="item-label">瑞金</div>
+          </div>
+          <div class="timeline-item" data-index="1">
+            <div class="node">2</div>
+            <div class="item-label">湘江</div>
+          </div>
+          <div class="timeline-item" data-index="2">
+            <div class="node">3</div>
+            <div class="item-label">遵义</div>
+          </div>
+          <div class="timeline-item" data-index="3">
+            <div class="node">4</div>
+            <div class="item-label">川西</div>
+          </div>
+          <div class="timeline-item" data-index="4">
+            <div class="node">5</div>
+            <div class="item-label">会宁</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-panel" id="detailPanel">
+        <div class="detail-image" id="detailImage">📷 占位图</div>
+        <div class="detail-content" id="detailContent">
+          <h3 id="detailTitle">瑞金 · 长征出发地</h3>
+          <p id="detailText">1934年10月，中央红军从瑞金等地出发，踏上漫漫长征路。</p>
+        </div>
+      </div>
+
+      <div class="next-btn-container">
+        <button class="btn-next" id="goToThirdBtn">下一篇章 →</button>
+      </div>
+    </div>
+
+    <!-- 第三页 -->
+    <div id="third-page" class="page hidden">
+      <div class="hero-section">
+        <div class="hero-left">
+          <div class="hero-left-subtitle">英雄故事</div>
+          <div class="hero-images">
+            <div class="hero-img-card">
+              <img src="images/hero1.jpg" alt="长征英雄照片一" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'img-placeholder\'>📷 英雄照片一<br>（替换 images/hero1.jpg）</div>';">
+            </div>
+            <div class="hero-img-card">
+              <img src="images/hero2.jpg" alt="长征英雄照片二" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'img-placeholder\'>📷 英雄照片二<br>（替换 images/hero2.jpg）</div>';">
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-content">
+          <div class="hero-name">郑金煜</div>
+          <div class="hero-sub">17岁战士郑金煜的最后时刻</div>
+          <div class="hero-body">
+            <p>郑金煜是江西石城人，1918年出生。1933年10月，年仅15岁的他参加红军，1934年加入中国共产党并随军长征。在红一军团二师四团，他担任团部党支部青年委员兼宣传干事。杨成武在回忆中描述他“个子不高，但长得十分秀气，人也挺机灵”，行军时抢着背重柴、做难事，还会唱歌、讲故事，是队伍里很惹人喜欢的“红小鬼”。</p>
+            <p>1935年8月，红四团进入松潘草地。出发前部队规定每人须拣些干柴用于烧水烤火，但草地天气一日多变，午后常降暴雨，大多数战士的柴禾都被淋湿了。郑金煜却一路把几根干柴贴身藏在衣服里，宁可自己淋透，也要保住这点引火的东西。进入草地后的一个黄昏，部队在稍高的坡上露营，柴禾大多湿透，无法生火。正是郑金煜贴身保存的那几根干柴被掏出来当引火柴，火才终于点燃。大家烤了火，烧了一盆开水，每人分到一小杯，就着青稞麦面吃了一点。杨成武后来在回忆录里写道，“这也许是草地上最好的一顿饭了”。</p>
+            <p>进入草地第四天，连日风雨、泥泞、寒冷和饥饿的消耗让郑金煜病倒了。他发着高烧，起初还坚持让人搀扶着走，对同志们说：“我在政治上像块钢铁，但我的腿不管用，我要掉队了，我多么舍不得你们啊！” 到第五天中午，他的状况急剧恶化，让人传话请杨成武等他一下。杨成武赶到时，郑金煜“面如白蜡，额头沁着汗”，强睁开眼用颤抖的声音断断续续说话。他把自己一直贴身保存、夹在党证里的七根焦干火柴交给战友，请转交给党组织。在生命最后一刻，他留下的话是：“我知道党的事业一定会胜利！革命一定会胜利！” 当天，17岁的郑金煜在草地上牺牲。</p>
+            <p>郑金煜牺牲时未婚无嗣，家乡很长一段时间里甚至没有他的烈士登记。后来，作家王愿坚以他的事迹等为原型创作了短篇小说《七根火柴》，那个在草地深处把火柴和党证交给战友的无名战士，感动了几代读者。杨成武评价他：“他的英雄事迹、斗争精神，与日月同辉，与山江共存。”</p>
+          </div>
+        </div>
+      </div>
+      <div class="page-next-btn-container">
+        <button class="btn-next" id="goToFourthBtn">下一篇章 →</button>
+      </div>
+    </div>
+
+    <!-- 第四页 -->
+    <div id="fourth-page" class="page hidden">
+      <div class="hero-section">
+        <div class="hero-left">
+          <div class="hero-left-subtitle">长征精神与当代青年的联结</div>
+          <div class="hero-phone-shot">
+            <img src="images/phone-shot.jpg" alt="手机截图：长征精神与当代青年" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\'img-placeholder\'>📱 手机截图<br>（替换 images/phone-shot.jpg，建议 1080×2400）</div>';">
+          </div>
+        </div>
+
+        <div class="hero-content">
+          <div class="hero-name">抖音博主良田</div>
+          <div class="hero-sub">镜头下续写长征精神</div>
+          <div class="hero-body">
+            <p>良田（本名施嘉栋）是一位“00后”抖音摄影博主，核心定位是为普通人及弱势群体拍摄“人生照片”，以素人改造和公益摄影走红。截至2025年初，其抖音粉丝量超1500万，作品获赞近4亿。他的镜头很少对准精致模特，更多聚焦于被忽视的普通人——白化病女孩、鲜红斑痣患者、残障人士、癌症患者等。核心理念是“各花各有各花香”，通过摄影让被拍摄者看见自己的独特美感，而非迎合单一审美标准。他曾表示，爆款的本质不是猎奇，而是“让每个普通人都能被郑重注视”。2023年12月，他因拍摄摆摊救母的女孩小罗引发广泛关注，视频直接带动了网友自发援助。良田的账号内核并非单纯的摄影技术展示，而是以摄影为媒介的善意传递与自信重建，这也是他能从众多摄影博主中突围的关键。</p>
+          </div>
+        </div>
+      </div>
+      <div class="page-next-btn-container">
+        <button class="btn-next" id="goToFifthBtn">下一篇章 →</button>
+      </div>
+    </div>
+
+    <!-- 第五页 -->
+    <div id="fifth-page" class="page hidden">
+      <div class="fifth-title">新时代青年的长征精神</div>
+      <div class="fifth-body">
+        <p>长征，是人类历史上一次惊天动地的壮举。九十年前，红军将士用双脚穿越了十余个省份，翻越了二十余座巍峨雪山，走过了茫茫无边的草地，在物资极度匮乏、敌人围追堵截的绝境中，完成了震惊世界的战略转移。今天，硝烟早已散去，雪山草地也已成为历史课本上的插图，但长征精神却从未远离。对于新时代的青年而言，长征不是一段被尘封的往事，而是一面镜子、一把尺子、一团火种——它照见我们的初心，丈量我们的脚步，点燃我们的热血。</p>
+        <p>习近平总书记概括的伟大长征精神五个方面：1. 把全国人民和中华民族的根本利益看得高于一切，坚定革命的理想和信念，坚信正义事业必然胜利的精神。2. 为了救国救民，不怕任何艰难险阻，不惜付出一切牺牲的精神。3. 坚持独立自主、实事求是，一切从实际出发的精神。4. 顾全大局、严守纪律、紧密团结的精神。5. 紧紧依靠人民群众，同人民群众生死相依、患难与共、艰苦奋斗的精神。</p>
+        <p>郑金煜所体现的长征精神没有随时间被“消解”，而是在当今社会的演变发生了场景转换和表达方式的迁移。郑金煜身上体现的，是长征精神中最具体、也最可感知的那一层：信仰不是抽象口号，而是在身体已经撑不住的时候，仍然知道自己为什么走、跟谁走、把最后一点希望交给谁。长征精神在当今社会的演变，核心是从“生死考验下的坚守”转化为“和平年代各岗位上的攻坚与日常担当”。郑金煜的干柴，良田的镜头下的记录，共同点都是守住一件具体的事。从中我们不难看出，当代青年的时代使命，是把这种精神从“历史记忆”转化为“当下行动”。其最关键之处在于将长征精神中的“理想信念”表现为一种可执行、可检验的行动逻辑，而不是停留在情感共鸣层面。身为青年，我们可以去选择一个方向、承担一份职责、在遇到困难时不轻易更换跑道、在看不到即时回报时仍然把手里的事做到对得起自己。</p>
+        <p>什么是守住一件具体的事？当年红军战士守住的，是每300米就有一名战友倒下时依然向前的方向感；今天我们青年人守住的，是在没有炮火的环境里，把一件小事做到底的定力。形式不同，但“不挪开脚步”的内核是相通的。</p>
+      </div>
+      <div class="page-next-btn-container">
+        <button class="btn-next" id="backToWelcomeBtn">返回首页 ↺</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const welcomePage = document.getElementById('welcome-page');
+      const timelinePage = document.getElementById('timeline-page');
+      const thirdPage = document.getElementById('third-page');
+      const fourthPage = document.getElementById('fourth-page');
+      const fifthPage = document.getElementById('fifth-page');
+      const closeWelcomeBtn = document.getElementById('closeWelcomeBtn');
+      const goToThirdBtn = document.getElementById('goToThirdBtn');
+      const goToFourthBtn = document.getElementById('goToFourthBtn');
+      const goToFifthBtn = document.getElementById('goToFifthBtn');
+      const backToWelcomeBtn = document.getElementById('backToWelcomeBtn');
+
+      const timelineData = [
+        {
+          title: '瑞金 · 长征出发地',
+          text: '1934年10月，中央红军从瑞金等地出发，踏上漫漫长征路。',
+          imagePlaceholder: '📷 瑞金',
+          image: 'images/ruijin.jpg'
+        },
+        {
+          title: '湘江 · 血战突围',
+          text: '1934年11月，湘江战役，红军付出巨大代价突破第四道封锁线。',
+          imagePlaceholder: '📷 湘江',
+          image: 'images/xiangjiang.jpg'
+        },
+        {
+          title: '遵义 · 伟大转折',
+          text: '1935年1月，遵义会议确立了毛泽东同志的领导地位，是生死攸关的转折点。',
+          imagePlaceholder: '📷 遵义',
+          image: 'images/zunyi.png'
+        },
+        {
+          title: '草地 · 艰难行进',
+          text: '1935年5月，红军进入川西北茫茫草地，克服极端恶劣的自然条件，艰难北上。',
+          imagePlaceholder: '📷 川西',
+          image: 'images/grass.jpg'
+        },
+        {
+          title: '会宁 · 胜利会师',
+          text: '1936年10月，红军三大主力在会宁会师，长征胜利结束。',
+          imagePlaceholder: '📷 会宁',
+          image: 'images/huining.jpg'
+        }
+      ];
+
+      let activeIndex = 0;
+      const timelineItems = document.querySelectorAll('.timeline-item');
+      const detailImage = document.getElementById('detailImage');
+      const detailTitle = document.getElementById('detailTitle');
+      const detailText = document.getElementById('detailText');
+
+      function updateDetail(index) {
+        const data = timelineData[index];
+        if (!data) return;
+        detailTitle.textContent = data.title;
+        detailText.textContent = data.text;
+        if (data.image && data.image.trim() !== '') {
+          detailImage.innerHTML = `<img src="${data.image}" alt="${data.title}" onerror="this.style.display='none'; this.parentElement.innerText='📷 图片加载失败';">`;
+        } else {
+          detailImage.innerHTML = data.imagePlaceholder;
+        }
+        timelineItems.forEach((item, i) => {
+          if (i === index) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+        activeIndex = index;
+      }
+
+      timelineItems.forEach((item, idx) => {
+        item.addEventListener('click', () => {
+          updateDetail(idx);
+        });
+      });
+
+      updateDetail(0);
+
+      // ---------- 页面切换 ----------
+      closeWelcomeBtn.addEventListener('click', () => {
+        welcomePage.classList.add('hidden');
+        timelinePage.classList.remove('hidden');
+      });
+
+      goToThirdBtn.addEventListener('click', () => {
+        timelinePage.classList.add('hidden');
+        thirdPage.classList.remove('hidden');
+      });
+
+      goToFourthBtn.addEventListener('click', () => {
+        thirdPage.classList.add('hidden');
+        fourthPage.classList.remove('hidden');
+      });
+
+      goToFifthBtn.addEventListener('click', () => {
+        fourthPage.classList.add('hidden');
+        fifthPage.classList.remove('hidden');
+      });
+
+      backToWelcomeBtn.addEventListener('click', () => {
+        fifthPage.classList.add('hidden');
+        welcomePage.classList.remove('hidden');
+      });
+    })();
+  </script>
+</body>
+</html>
